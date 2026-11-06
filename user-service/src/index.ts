@@ -1,16 +1,28 @@
-import express from "express"
-import dotenv from "dotenv"
-
-dotenv.config();
+import express from "express";
+import { AppDataSource } from "./database/data-source";
 
 const app = express();
-const PORT = process.env.PORT;
 
-if(!PORT)
-{
-    throw new Error("Port not found");
+app.use(express.json());
+
+const PORT = Number(process.env.PORT || 3001);
+
+async function bootstrap(): Promise<void> {
+  try {
+    // Establish PostgreSQL connection
+    await AppDataSource.initialize();
+
+    console.log("Database connected successfully!");
+
+    // Start Express only after database connection succeeds
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("Failed to start application:", error);
+    process.exit(1);
+  }
 }
 
-app.listen(PORT, () => {
-    console.log(`Server is listening at http://localhost:${PORT}`);
-});
+void bootstrap();
