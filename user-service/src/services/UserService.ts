@@ -14,7 +14,6 @@ export class UserService {
         private readonly transactionRunner: TransactionRunner
     ) {}
 
-    // No explicit transaction needed
     async getUser(id: string) {
         return await this.transactionRunner.run(
             {
@@ -30,7 +29,6 @@ export class UserService {
         )
     }
 
-    // No explicit transaction needed
     async getUserByEmail(email: string) {
         return await this.transactionRunner.run(
             {
