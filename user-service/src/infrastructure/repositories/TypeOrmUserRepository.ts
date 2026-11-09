@@ -1,6 +1,6 @@
 import { Repository } from "typeorm";
 import { CreateUserInput, User, UserRepository, UserWithOutPassword } from "../../domain/repositories/UserRepositories";
-import { UserEntity } from "../../entities/UserEntity";
+import { UserEntity } from "../../domain/entities/UserEntity";
 
 export class TypeOrmUserRepository implements UserRepository {
 
