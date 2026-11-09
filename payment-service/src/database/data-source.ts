@@ -42,7 +42,7 @@ export const AppDataSource = new DataSource({
   // the code has started the server
   // Automatically discover entity classes
   entities: [
-    path.join(__dirname, "../entities/**/*.{ts,js}"),
+    path.join(__dirname, "../domain/entities/**/*.{ts,js}"),
   ],
 
   // Discover migrations

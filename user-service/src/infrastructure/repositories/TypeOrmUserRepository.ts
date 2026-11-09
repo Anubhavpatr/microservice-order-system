@@ -8,6 +8,38 @@ export class TypeOrmUserRepository implements UserRepository {
         private readonly repository: Repository<UserEntity>
     ) { }
 
+    async findByIdWithPassword(id: string): Promise<User | null> {
+        const user = await this.repository.findOneBy({id});
+
+        if(!user)
+        {
+            return null;
+        }
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            password : user.passwordHash
+        }
+    }
+    
+    async findByIdWithEmail(email: string): Promise<User | null> {
+        const user = await this.repository.findOneBy({email});
+
+        if(!user)
+        {
+            return null;
+        }
+
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            password : user.passwordHash
+        }
+    }
+
     async findByEmail(email: string): Promise<UserWithOutPassword | null> {
         const user = await this.repository.findOneBy({email});
 

@@ -12,6 +12,10 @@ export interface UserWithOutPassword extends Omit<User,"password">{}
 export interface UserRepository {
   findById(id: string): Promise<UserWithOutPassword | null>;
 
+  findByIdWithPassword(id : string) : Promise<User | null>;
+
+  findByIdWithEmail(email : string) : Promise<User | null>;
+
   findByEmail(email : string) : Promise<UserWithOutPassword | null>
 
   create(user: Omit<User, "id">): Promise<UserWithOutPassword>;
