@@ -1,42 +1,103 @@
-import { CreateUserInput, UserRepository } from "../domain/repositories/UserRepositories";
-import { hashPassword } from "../utils/password";
+import {
+    CreateUserInput
+} from "../domain/repositories/UserRepositories";
 
+import {
+    TransactionRunner
+} from "../domain/transactions/TransactionContext";
+
+import { hashPassword } from "../utils/password";
 
 export class UserService {
 
     constructor(
-        private readonly userRepository: UserRepository
-    ) { }
+        private readonly transactionRunner: TransactionRunner
+    ) {}
 
+    // No explicit transaction needed
     async getUser(id: string) {
-        return this.userRepository.findById(id);
+        return await this.transactionRunner.run(
+            {
+                users : ["findById"]
+            },
+            async ({users}) => {
+
+                return await users.findById(id);
+            },
+            {
+                isolationLevel : "READ COMMITTED"
+            }
+        )
     }
 
-    async getUserByEmail(email : string)
-    {
-        return this.userRepository.findByEmail(email);
+    // No explicit transaction needed
+    async getUserByEmail(email: string) {
+        return await this.transactionRunner.run(
+            {
+                users: ["findByEmail"]   
+            },
+            async ({users}) => {
+                return await users.findByEmail(email);
+            },
+            {
+                isolationLevel : "READ COMMITTED"
+            }
+        );
     }
 
-    async deleteUser(id : string)
-    {
-        await this.userRepository.delete(id);
+    // Transaction for deleting a user
+    async deleteUser(id: string) {
+
+        await this.transactionRunner.run(
+            {
+                users: ["delete"]
+            },
+
+            async ({ users }) => {
+                await users.delete(id);
+            },
+
+            {
+                isolationLevel: "READ COMMITTED"
+            }
+        );
     }
 
+    // Transaction for creating a user
     async createUser(user: CreateUserInput) {
 
-        const existingUser = await this.userRepository.findByEmail(user.email);
+        // Hash password before starting transaction
+        const hashedPassword = await hashPassword(
+            user.password
+        );
 
-        if (existingUser) {
-            throw new Error("User already exists");
-        }
+        return this.transactionRunner.run(
+            {
+                users: ["findByEmail", "create"]
+            },
 
-        const hashedPassword = await hashPassword(user.password);
+            async ({ users }) => {
 
-        const createdUser = this.userRepository.create({
-            ...user,
-            password : hashedPassword
-        });
+                // Business validation
+                const existingUser =
+                    await users.findByEmail(user.email);
 
-        return createdUser;
+                if (existingUser) {
+                    throw new Error("User already exists");
+                }
+
+                // Create user using transactional repository
+                const createdUser = await users.create({
+                    ...user,
+                    password: hashedPassword
+                });
+
+                return createdUser;
+            },
+
+            {
+                isolationLevel: "READ COMMITTED"
+            }
+        );
     }
 }
